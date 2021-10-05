@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html xmlns:v-on="http://www.w3.org/1999/xhtml">
+<head>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://kit.fontawesome.com/51db22a717.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Alata&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+
+    <title>Insert title here</title>
+</head>
+<body>
+    <div class="page-container" id="app" v-cloak>
+        <div class="login-form-container shadow">
+            <div class="login-form-right-side">
+                <div class="top-logo-wrap">
+                    <ul name="asd" class="list-group">
+                        <li class="list-group-item list-group-item-action" v-for="message in someone_nearby" v-on:click="machingInfo(message)">
+                            {{message.myId}}
+
+<!--                            <a> id : {{message.myWantStreet}}</a> <a> 거리 : {{message.receiveStreet}}</a> <button>매칭하기</button>-->
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="login-form-left-side">
+                <ul name="asd" class="list-group">
+                    <li class="list-group-item list-group-item-action" v-for="message in MatchingCompletedList">
+                        {{message}} <button v-on:click="sendMatching(message)">매칭하기</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div>
+            <button  class="login-btn" type="button" @click="streetData(10)">1km 찾기</button>
+            <br><br>
+            <button  class="login-btn" type="button" @click="streetData(20)">2km 찾기</button>
+            <br><br>
+            <button class="login-btn" type="button" @click="streetData(30)">3km 찾기</button>
+            <br><br>
+            <button class="login-btn" type="button" @click="streetData(40)">4km 찾기</button>
+            <br><br>
+            <button class="login-btn" type="button" @click="streetData(50)">5km 찾기</button>
+            <br><br>
+            <button class="login-btn" type="button" @click="streetData(60)"  value="${ssVar }">6km 찾기</button>
+            <br><br>
+            <button type="button" @click="isLocation()">매칭 데이터 보내기</button>
+            <button type="button" @click="imsidata()">매칭 데이터 보내기</button>
+            <input type="hidden" id="hiddenMember" th:value="${member}" />
+            <b th:text="${member.id}"></b>
+        </div>
+
+    </div>
+
+
+
+
+
+
+</body>
+
+
+
+
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+<script src="/webjars/vue/2.5.16/dist/vue.min.js"></script>
+<script src="/webjars/axios/0.17.1/dist/axios.min.js"></script>
+<script src="/webjars/sockjs-client/1.1.2/sockjs.min.js"></script>
+<script src="/webjars/stomp-websocket/2.3.3-1/stomp.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script type="text/javascript">
+
+<!--debugger;-->
+
+
+    var json = {
+        function : '',
+        data : ''
+    };
+
+
+
+
+
+
+
+    var sock = new SockJS("/ws-stomp");
+    var ws = Stomp.over(sock);
+    var reconnect = 0;
+
+    function locationData(hardness,latitude){
+        vm.hardness = hardness;
+        vm.latitude = latitude;
+        if(vm.hardness == null && vm.latitude){
+            alert("위치 정보를 허용하세요");
+        }
+        vm.sendLocation();
+    }
+
+
+
+
+    // vue.js
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            myId: '',
+            hardness:'',
+            latitude:'',
+            street:'30',
+            someone_nearby:[],
+
+            receiveId:'',
+            MatchingCompletedList:[],
+        },
+
+        created() {
+
+            axios.post('/data')
+            .then(
+                response => {
+                    vm.myId = response.data;
+                }
+            )
+        },
+
+        methods: {
+
+
+
+            streetData: function(data){
+                alert(data+"배 적용합니다");
+                this.street = data;
+            },
+
+
+
+
+            // 매칭 요청 데이터 전달
+            sendLocation: function() {
+                vm.someone_nearby=[];
+                ws.send("/pub/matching/matchReq", {}, JSON.stringify({myHardness:vm.hardness, myLatitude:vm.latitude, myWantStreet:this.street}));
+                return;
+            },
+
+
+            // 매칭 정보 확인
+            machingInfo: function(recv) {
+                vm.MatchingCompletedList = [];
+                vm.MatchingCompletedList.unshift(recv);
+            },
+
+
+
+            //매칭자 선택
+            sendMatching: function(recv) {
+                ws.send("/pub/matching/sendMaching", {}, JSON.stringify({myId:vm.myId,  myHardness:vm.hardness,  myLatitude:vm.latitude, "msId":recv.myId, "msHardness":recv.myHardness, "msLatitude":recv.myLatitude, "dfo":recv.dfo}));
+            },
+
+
+            imsidata: function() {
+                ws.send("/pub/matching/imsidatasend", {}, null);
+            },
+
+            connect: function() { // 웹소켓 리턴 데이터
+                ws.connect({}, function(frame) {
+                ws.subscribe("/sub/matching/location/"+vm.myId, function(message) {
+                    try{
+                        var recv = JSON.parse(message.body);
+                        console.log("test");
+
+                        if(recv.function == "MatchWaitInformation"){
+
+
+                            // recv
+                            for (var i = 0; i < vm.someone_nearby.length; i++) { // 배열 arr의 모든 요소의 인덱스(index)를 출력함.
+                                  if(recv.myId == vm.someone_nearby[i].myId){
+                                        vm.someone_nearby.splice(i);
+                                  }
+                            }
+                            vm.someone_nearby.unshift(recv);
+
+
+                        }else if(recv.function == "MatchingCompleted"){
+                              alert("매칭 성고!");
+
+                            for (var i = 0; i < vm.someone_nearby.length; i++) { // 배열 arr의 모든 요소의 인덱스(index)를 출력함.
+                                  if(recv.msId == vm.someone_nearby[i].myId){
+                                        vm.someone_nearby.splice(i);
+                                  }
+                            }
+                              if(recv.myId != vm.myId){
+                                    var recv = JSON.stringify({"myId":recv.msId, "message":"이미 다른 사람과 매칭 완료되었습니다"});
+                              }else{
+                                 var recv = JSON.stringify({"myId":recv.msId, "message":"매칭 완료"});
+                              }
+
+
+
+                             vm.someone_nearby.unshift(recv);
+                             console.log( vm.someone_nearby );
+
+                        }else if(recv.function == "MatchingFail"){
+                            alert("이미 매칭되어 있는 사람입니다.");
+                        }
+
+                    }catch(e){
+                        alert("실패 관리자에게 연락바랍니다");
+                        console.log(e);
+                    }
+                });
+                vm.messageSend();
+                }, function(error) {
+                    if(reconnect++ <= 5) {
+                        setTimeout(function() {
+                            console.log("connection reconnect");
+                            sock = new SockJS("/ws-stomp");
+                            ws = Stomp.over(sock);
+                            connect();
+                        },10*1000);
+                    }
+                }
+                );
+            },
+
+
+            messageSend: function(){
+                if(navigator.userAgent.match(".*Android.*")) {
+                     window.android.nexios("locationCheck", "");
+                } else if(navigator.userAgent.match(".*iP.*")){
+                   json.function="locationCheck";
+                   webkit.messageHandlers.nexios.postMessage(json);
+                } else{
+                    vm.hardness = 37.5587158208200,
+                    vm.latitude = 126.84279392818110
+                    this.sendLocation();
+                }
+            },
+
+            isLocation: function(){
+                vm.messageSend();
+            }
+        }
+    });
+
+    function getCookie(cName) {
+cName = cName + '=';
+var cookieData = document.cookie;
+var start = cookieData.indexOf(cName);
+var cValue = '';
+if(start != -1){
+start += cName.length;
+var end = cookieData.indexOf(';', start);
+if(end == -1)end = cookieData.length;
+cValue = cookieData.substring(start, end);
+}
+return unescape(cValue);
+}
+
+    </script>
+</body>
+</html>

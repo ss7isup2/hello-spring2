@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<script>
+var search = location.search
+
+var params = new URLSearchParams(search);
+
+var value= params.get('key');
+document.cookie = encodeURIComponent('key') + '=' + encodeURIComponent(value);
+</script>
+<div class="container">
+    <form action="/members/changPass" method="post">
+        <div class="form-group">
+            <label>패스워드</label>
+            <input type="text" id="pass" name="pass" placeholder="패스워드 입력">
+            <tr th:each="member : ${members}">
+            <br>
+
+        </div>
+        <button type="submit">패스워드 변경</button>
+        <br>
+    </form>
+</div> <!-- /container -->
+</body>
+</html>

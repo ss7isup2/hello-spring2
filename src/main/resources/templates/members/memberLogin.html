@@ -1,0 +1,61 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://kit.fontawesome.com/51db22a717.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Alata&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/xeicon@2.3.3/xeicon.min.css">
+
+</head>
+<body>
+
+
+
+
+<div class="page-container">
+    <div class="login-form-container shadow">
+        <div class="login-form-right-side">
+            <div class="top-logo-wrap">
+
+            </div>
+            <h1>How does a login system work?</h1>
+            <p>In computer security, logging in is the process by which an individual gains access to a computer system by identifying and authenticating themselves.</p>
+        </div>
+        <div class="login-form-left-side">
+            <div class="login-top-wrap">
+                <a class="create-account-btn shadow-light" href="/members/new">create profile</a>
+            </div>
+
+            <form action="/members/login" method="POST">
+                <div class="login-input-container">
+                    <div class="login-input-wrap input-id">
+                        <i class="far fa-envelope"></i>
+                        <input name="id" placeholder="ID" type="text">
+                    </div>
+                    <div class="login-input-wrap input-password">
+                        <i class="fas fa-key"></i>
+                        <input name="pass" placeholder="password"  type="password">
+                    </div>
+                </div>
+                <div class="login-btn-wrap">
+                    <button class="login-btn" type="submit">Login</button>
+                    <a href="/members/findPass" >Forgot password?</a>
+                </div>
+
+                <button class="xi-google xi-2x" type="button" onClick="location.href='/oauth2/authorization/google'"/>
+                <button class="xi-facebook xi-2x" type="button" onClick="location.href='/oauth2/authorization/facebook'"/>
+                <button class="xi-naver xi-2x" type="button" onClick="location.href='/oauth2/authorization/naver'"/>
+                <button class="xi-kakaotalk xi-2x" type="button" onClick="location.href='/oauth2/authorization/kakao'"/>
+
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>

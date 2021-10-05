@@ -1,0 +1,142 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://kit.fontawesome.com/51db22a717.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Alata&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="page-container" id="app" v-cloak>
+    <div class="login-form-container shadow">
+        <div class="login-form-right-side">
+            <div class="top-logo-wrap">
+
+            </div>
+            <h1>How does a login system work?</h1>
+            <p>In computer security, logging in is the process by which an individual gains access to a computer system by identifying and authenticating themselves.</p>
+        </div>
+        <div class="login-form-left-side">
+            <div class="login-top-wrap">
+                <a class="create-account-btn shadow-light" href="/members/new">create profile</a>
+            </div>
+            <p class="errorData" th:text="${errorData}"></p>
+
+                <div class="login-input-container">
+                    <div class="login-input-wrap input-id">
+                        <i class="far fa-envelope"></i>
+                        <input id="id" placeholder="ID" type="text" >
+                    </div>
+                    <div class="login-input-wrap input-password">
+                        <i class="fas fa-key"></i>
+                        <input id="pass" placeholder="password"  type="password">
+                    </div>
+                    <div class="login-input-wrap">
+                        <i class="far fa-envelope"></i>
+                        <input id="name" placeholder="name"  type="text">
+                    </div>
+                    <div class="login-input-wrap">
+                        <i class="far fa-envelope"></i>
+                        <input placeholder="email"  id="email" type="text">
+                        <button class="login-btn" onclick="sendPin()" type="button" id="sendPinNum">인증번호 보내기</button>
+                    </div>
+
+                    <div class="col-md-5" id="checkPin" style="display: none;">
+                        <input name="pin" placeholder="pin"  type="text" id="pin">
+                        <button class="login-btn" onclick="checkPin()" type="button">인증번호 확인</button>
+                    </div>
+                </div>
+                <div class="login-btn-wrap" style="display: none;" id="submitId">
+                    <button class="login-btn" type="button" onclick="createUser()">회원가입</button>
+                </div>
+
+
+
+        </div>
+    </div>
+</div>
+</body>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script>
+
+
+    var pinNum = '';
+    var check = false;
+
+    function sendPin(){
+        var email = document.getElementById('email').value;
+
+        if(email == ''){
+            alert("email 을 입력해주세요");
+            return;
+        }
+
+        $.ajax({
+            type:"POST",
+            url:"/members/mailCheck?email=" +document.getElementById('email').value,
+            success:function(data){
+                console.log("data : " + data);
+                if(data != ""){
+                    document.getElementById("sendPinNum").style.display = "none";
+                    document.getElementById("checkPin").style.display = "";
+                    pinNum = data;
+                    alert(data);
+                }else{
+                    alert("이메일이 잘못되었습니다");
+                }
+            }
+        });
+    }
+
+    function checkPin(){
+        if(document.getElementById('pin').value == pinNum){
+            check = true;
+            document.getElementById("submitId").style.display = "";
+        }else{
+            alert("인증번호 실패");
+        }
+    }
+
+
+    function createUser(){
+        var id = document.getElementById('id').value;
+        var email = document.getElementById('email').value;
+        var pass = document.getElementById('pass').value;
+        var name = document.getElementById('name').value;
+        var checkPin = document.getElementById('checkPin').value;
+
+        var array = {"id":id,"email":email,"pass":pass,"name":name};
+        $.ajax({
+            type:"POST",
+            url : "/members/createMember",
+             data: {
+                    id: id,
+                    email: email,
+                    pass: pass,
+                    name: name,
+                },
+            success: function (data) {
+                var functionName
+                console.log(data);
+
+                if(data.function == "susses"){
+                     location.href='/';
+                }else{
+                    if(data.value == "email"){
+                        alert("중복된 email 입니다");
+                    }else{
+                        alert("중복된 아이디 입니다");
+                    }
+                }
+
+            },
+            error:function(recv){
+                console.log("실패");
+                console.log(recv);
+            }
+        })
+    }
+
+
+</script>
+</html>
